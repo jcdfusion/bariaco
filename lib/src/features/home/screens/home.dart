@@ -4,10 +4,13 @@ import 'package:bariaco/src/features/home/widgets/test3.dart';
 import 'package:bariaco/src/features/home/widgets/test4.dart';
 import 'package:bariaco/src/features/home/widgets/test5.dart';
 import 'package:bariaco/src/features/home/widgets/test6.dart';
+import 'package:bariaco/src/features/session/cubits/register_cubit.dart';
 import 'package:bariaco/utils/mercado_colors.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../sell/screens/sell.dart';
+import '../../session/cubits/authentication_cubit.dart';
 import '../widgets/home_drawer.dart';
 
 class HomeScreen extends StatelessWidget {

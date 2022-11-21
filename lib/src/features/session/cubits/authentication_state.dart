@@ -2,8 +2,8 @@ part of 'authentication_cubit.dart';
 
 @immutable
 abstract class AuthenticationState extends Equatable {
-  const AuthenticationState();
-
+  // const AuthenticationState();
+  //
   @override
   List<Object?> get props => [];
 }
@@ -11,12 +11,14 @@ abstract class AuthenticationState extends Equatable {
 class AuthenticationUnknown extends AuthenticationState {}
 
 class AuthenticationComplete extends AuthenticationState {
-  final User user;
+  // final User user;
+  //
+  // const AuthenticationComplete({required this.user});
 
-  const AuthenticationComplete({required this.user});
-
-  @override
-  List<Object?> get props => [user];
+  // @override
+  // List<Object?> get props => [user];
 }
+
+class AuthenticationLoading extends AuthenticationState {}
 
 class AuthenticationIncomplete extends AuthenticationState {}
