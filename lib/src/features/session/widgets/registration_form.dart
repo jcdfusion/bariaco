@@ -1,76 +1,42 @@
 import 'package:bariaco/src/common_widgets/loading_screen.dart';
-import 'package:bariaco/src/features/home/screens/home.dart';
 import 'package:bariaco/src/features/session/cubits/register_cubit.dart';
 import 'package:bariaco/utils/mercado_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:formz/formz.dart';
+
+import '../../home/screens/home.dart';
 
 // Create a Form widget.
-class RegisterForm extends StatefulWidget {
+class RegisterForm extends StatelessWidget {
   const RegisterForm({super.key});
-
-  @override
-  RegisterFormState createState() {
-    return RegisterFormState();
-  }
-}
-
-// Create a corresponding State class.
-// This class holds data related to the form.
-class RegisterFormState extends State<RegisterForm> {
-  // Create a global key that uniquely identifies the Form widget
-  // and allows validation of the form.
-  //
-  // Note: This is a GlobalKey<FormState>,
-  // not a GlobalKey<MyCustomFormState>.
-  final _formKey = GlobalKey<FormState>();
-  final nameRegController = TextEditingController();
-  final emailRegController = TextEditingController();
-  final passwordRegController = TextEditingController();
-
-  @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    // Clean up the controller when the widget is disposed.
-    nameRegController.dispose();
-    emailRegController.dispose();
-    passwordRegController.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
     var fillParentWidth = MediaQuery.of(context).size.width;
     double bottomPadding = 15;
     return BlocConsumer<RegisterCubit, RegisterState>(
-        listener: (context, state) {
-      if (state is RegistrationFailure) {
-        showDialog(
-            context: context,
-            builder: (context) {
-              return AlertDialog(
-                title: const Text('OOPS!!'),
-                content: Text(state.error),
-              );
-            });
-      } else if (state is RegistrationComplete) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const HomeScreen()),
-        );
-      }
-    }, builder: (context, state) {
-      if (state is RegistrationLoading) {
-        return const LoadingScreen();
-      } else {
-        return Container(
-          margin: const EdgeInsets.all(10),
-          child: Form(
-            key: _formKey,
+      listener: (context, state) {
+        if (state.status == RegisterStatus.failure) {
+          showDialog(
+              context: context,
+              builder: (context) {
+                return AlertDialog(
+                  title: const Text('OOPS!!'),
+                  content: Text(state.error.toString()),
+                );
+              });
+        } else if (state.status == RegisterStatus.complete) {
+          Navigator.push(context,
+              MaterialPageRoute(builder: (context) => const HomeScreen()));
+        }
+      },
+      builder: (context, state) {
+        if (state.status == RegisterStatus.loading) {
+          return const LoadingScreen();
+        } else {
+          return Container(
+            margin: const EdgeInsets.all(10),
             child: Column(
               children: [
                 Padding(
@@ -80,60 +46,14 @@ class RegisterFormState extends State<RegisterForm> {
                 ),
                 Padding(
                   padding: EdgeInsets.only(bottom: bottomPadding),
-                  child: TextFormField(
-                    controller: nameRegController,
-                    keyboardType: TextInputType.emailAddress,
-                    decoration: const InputDecoration(
-                      border: OutlineInputBorder(),
-                      labelText: 'Name *',
-                    ),
-                    // The validator receives the text that the user has entered.
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter some text';
-                      }
-                      return null;
-                    },
-                  ),
+                  child: _nameField(),
                 ),
                 Padding(
-                  padding: EdgeInsets.only(bottom: bottomPadding),
-                  child: TextFormField(
-                    controller: emailRegController,
-                    keyboardType: TextInputType.emailAddress,
-                    decoration: const InputDecoration(
-                      border: OutlineInputBorder(),
-                      labelText: 'Email *',
-                    ),
-                    // The validator receives the text that the user has entered.
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter some text';
-                      }
-                      return null;
-                    },
-                  ),
-                ),
+                    padding: EdgeInsets.only(bottom: bottomPadding),
+                    child: _emailField()),
                 Padding(
-                  padding: EdgeInsets.only(bottom: bottomPadding),
-                  child: TextFormField(
-                    controller: passwordRegController,
-                    decoration: const InputDecoration(
-                      border: OutlineInputBorder(),
-                      labelText: 'Password *',
-                    ),
-                    // The validator receives the text that the user has entered.
-                    obscureText: true,
-                    enableSuggestions: false,
-                    autocorrect: false,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter some text';
-                      }
-                      return null;
-                    },
-                  ),
-                ),
+                    padding: EdgeInsets.only(bottom: bottomPadding),
+                    child: _passwordField()),
                 Row(
                   children: const [
                     Switch(value: false, onChanged: null),
@@ -150,31 +70,123 @@ class RegisterFormState extends State<RegisterForm> {
                     Spacer(),
                   ],
                 ),
-                SizedBox(
-                  width: fillParentWidth,
-                  child: ElevatedButton.icon(
-                    onPressed: () async {
-                      context.read<RegisterCubit>().createUser(
-                          emailRegController.text,
-                          nameRegController.text,
-                          passwordRegController.text);
+                BlocConsumer<RegisterCubit, RegisterState>(
+                    listener: (context, state) {
+                      if (state.status == RegisterStatus.failure &&
+                          state.error != null) {
+                        showDialog(
+                            context: context,
+                            builder: (context) {
+                              return AlertDialog(
+                                title: const Text('OOPS!!'),
+                                content: Text(state.error as String),
+                              );
+                            });
+                      }
                     },
-                    style: ButtonStyle(
-                      backgroundColor: MaterialStateProperty.all(
-                        mercadoSecondary,
-                        //padding: MaterialStateProperty.all(const EdgeInsets.all(22)
-                      ),
-                    ),
-                    icon: const Icon(Icons.medical_information),
-                    label: const Text('Register',
-                        style: TextStyle(fontWeight: FontWeight.bold)),
-                  ),
-                ),
+                    buildWhen: (previous, current) =>
+                        current.status == RegisterStatus.initial,
+                    builder: (context, state) {
+                      return SizedBox(
+                        width: fillParentWidth,
+                        child: ElevatedButton.icon(
+                          onPressed: () async {
+                            if (state.formStatus == FormzStatus.valid) {
+                              context.read<RegisterCubit>().createUser();
+                            }
+                          },
+                          style: ButtonStyle(
+                            backgroundColor: MaterialStateProperty.all(
+                              mercadoSecondary,
+                              //padding: MaterialStateProperty.all(const EdgeInsets.all(22)
+                            ),
+                          ),
+                          icon: const Icon(Icons.medical_information),
+                          label: const Text('Register',
+                              style: TextStyle(fontWeight: FontWeight.bold)),
+                        ),
+                      );
+                    }),
               ],
             ),
-          ),
+          );
+        }
+      },
+    );
+  }
+}
+
+/// Form Field Widgets
+class _nameField extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<RegisterCubit, RegisterState>(
+      buildWhen: (previous, current) => previous.name != current.name,
+      builder: (context, state) {
+        return TextFormField(
+          key: const Key('loginForm_nameInput_textField'),
+          onChanged: (name) =>
+              context.read<RegisterCubit>().nameValidation(name),
+          decoration: InputDecoration(
+              border: const OutlineInputBorder(),
+              labelText: 'Full Name *',
+              errorText: state.name.invalid
+                  ? 'The name has to have at least 2 characters.'
+                  : null //? 'Errol' : null,
+              ),
         );
-      }
-    });
+      },
+    );
+  }
+}
+
+class _emailField extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<RegisterCubit, RegisterState>(
+      buildWhen: (previous, current) => previous.email != current.email,
+      builder: (context, state) {
+        return TextFormField(
+          key: const Key('loginForm_emailInput_textField'),
+          keyboardType: TextInputType.emailAddress,
+          onChanged: (email) =>
+              context.read<RegisterCubit>().emailValidation(email),
+          decoration: InputDecoration(
+              border: const OutlineInputBorder(),
+              labelText: 'Email *',
+              errorText: state.email.invalid
+                  ? 'Please enter a valid email address.'
+                  : null //? 'Errol' : null,
+              ),
+        );
+      },
+    );
+  }
+}
+
+class _passwordField extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<RegisterCubit, RegisterState>(
+      buildWhen: (previous, current) => previous.password != current.password,
+      builder: (context, state) {
+        return TextFormField(
+          key: const Key('loginForm_passwordInput_textField'),
+          keyboardType: TextInputType.emailAddress,
+          obscureText: true,
+          onChanged: (password) =>
+              context.read<RegisterCubit>().passwordValidation(password),
+          decoration: InputDecoration(
+              border: const OutlineInputBorder(),
+              labelText: 'Password *',
+              errorText: state.password.invalid
+                  ? 'The password needs to have at least eight characters.'
+                  : null //? 'Errol' : null,
+              ),
+          enableSuggestions: false,
+          autocorrect: false,
+        );
+      },
+    );
   }
 }

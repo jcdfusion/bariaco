@@ -1,7 +1,7 @@
 import 'package:bariaco/src/features/account/screens/account.dart';
 import 'package:bariaco/src/features/home/widgets/home_drawer_login.dart';
 import 'package:bariaco/src/features/sell/screens/sell.dart';
-import 'package:bariaco/src/features/session/cubits/authentication_cubit.dart';
+import 'package:bariaco/src/features/authentication/cubit/authentication_cubit.dart';
 import 'package:bariaco/src/features/session/screens/social_login_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';

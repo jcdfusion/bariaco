@@ -1,6 +1,8 @@
 import 'package:appwrite/appwrite.dart';
 import 'package:bariaco/src/api/appClient.dart';
 
+import '../models/user.dart';
+
 class UserException implements Exception {
   final String message;
 
@@ -46,6 +48,25 @@ class UserRepository {
     }
   }
 
+  Future<User> getAccount() async {
+    try {
+      final result = await account.get();
+      return User(
+          DateTime.parse(result.$createdAt),
+          result.phone,
+          DateTime.parse(result.$updatedAt),
+          result.emailVerification,
+          result.phoneVerification,
+          DateTime.parse(result.registration),
+          result.status,
+          id: result.$id,
+          name: result.name,
+          email: result.email);
+    } on AppwriteException catch (exception) {
+      throw UserException(exception.message.toString());
+    }
+  }
+
   Future createOAuth2Session(String provider) async {
     try {
       await account.createOAuth2Session(provider: provider);
@@ -54,56 +75,4 @@ class UserRepository {
       throw UserException(error);
     }
   }
-// Future createOAuth2Session(String provider) async {
-//   return await _account.createOAuth2Session(provider: provider);
-// }
-// Future getAccount() async {
-//   return await _account.get();
-// }
-// Future getSession() async {
-//   return await _account.getSession(sessionId: 'current');
-// }
-// Future updateName(String name) async {
-//   return _account.updateName(name: name);
-// }
-// Future updatePassword(String password) async {
-//   return _account.updatePassword(password: password);
-// }
-// Future updateEmail(String email, String password) async {
-//   return _account.updateEmail(email: email, password: password);
-// }
-// Future updatePhone(String phone, String password) async {
-//   return _account.updatePhone(phone: phone, password: password);
-// }
-
-// Future<bool> isAuthenticated() async {
-//   try {
-//     Future result = api.account.getSession(sessionId: 'current');
-//   } catch(error){
-//     throw UserException(error.toString());
-//   }
-// }
-
-// void logInEmail(String email, String password) async {}
-//
-// void logInOAuth(String provider) async {}
-//
-// void logOut() async {}
-//
-// /// Create users and OAuth providers
-// Future<String> createUser(String email, String name, String password) async {
-//   try {
-//     final result = await api.createAccount(email, password, name);
-//     return 'yay';
-//   } on Exception catch (error) {
-//     throw UserException(error.toString());
-//   }
-// }
-//
-// void createSessionOAuth(String oAuthProvider) async {}
-//
-// void getUser() async {}
-//
-// /// Get User Avatar
-// void getAvatarInitials() async {}
 }

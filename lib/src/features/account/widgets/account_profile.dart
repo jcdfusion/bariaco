@@ -1,36 +1,44 @@
+import 'package:bariaco/src/api/user_repository.dart';
 import 'package:bariaco/src/common_widgets/custom_divider.dart';
 import 'package:bariaco/src/features/account/screens/profile_name_change.dart';
-import 'package:bariaco/src/features/home/screens/home.dart';
-import 'package:bariaco/src/features/session/cubits/authentication_cubit.dart';
+import 'package:bariaco/src/features/authentication/cubit/authentication_cubit.dart';
+import 'package:bariaco/src/features/session/screens/social_login_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../models/user.dart';
 import '../screens/profile_email_change.dart';
 import '../screens/profile_location_change.dart';
 import '../screens/profile_password_change.dart';
 import '../screens/profile_phone_change.dart';
 
-class ProfileBody extends StatelessWidget {
+class ProfileBody extends StatefulWidget {
   const ProfileBody({super.key});
+
+  @override
+  ProfileBodyState createState() {
+    return ProfileBodyState();
+  }
+}
+
+class ProfileBodyState extends State<ProfileBody> {
+  late Future<User> user;
+
+  @override
+  void initState() {
+    super.initState();
+    user = UserRepository().getAccount();
+  }
 
   @override
   Widget build(BuildContext context) {
     return BlocListener<AuthenticationCubit, AuthenticationState>(
       listener: (authenticationContext, state) {
-        if (state is AuthenticationComplete) {
-          showDialog(
-              context: context,
-              builder: (context) {
-                return const AlertDialog(
-                  title: Text('OOPS!!'),
-                  content: Text('Could not log out at the moment'),
-                );
-              });
-        } else if (state is AuthenticationIncomplete) {
-          print('INSIDE THE FUNCTION!!!!!!!!!!!');
+        if (state is AuthenticationIncomplete ||
+            state is AuthenticationUnknown) {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => const HomeScreen()),
+            MaterialPageRoute(builder: (context) => const SocialLoginScreen()),
           );
         }
       },
@@ -41,7 +49,16 @@ class ProfileBody extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  const Text('Michael J. Scott'),
+                  FutureBuilder(
+                      future: user,
+                      builder: (context, snapshot) {
+                        if (snapshot.hasData) {
+                          return Text(snapshot.data?.name as String);
+                        } else {
+                          return Text('USAHHHH');
+                        }
+                      }),
+                  //Text('Michael Scarn'),
                   const Spacer(),
                   TextButton(
                       onPressed: () {
@@ -59,7 +76,7 @@ class ProfileBody extends StatelessWidget {
               //const Divider(height: 10),
               Row(
                 children: [
-                  const Text('michael.scott@gmail.com'),
+                  Text('email@email.com'),
                   const Spacer(),
                   TextButton(
                       onPressed: () {
@@ -77,7 +94,7 @@ class ProfileBody extends StatelessWidget {
               //const Divider(height: 10),
               Row(
                 children: [
-                  const Text('787-509-6006'),
+                  Text('787-818-1234'),
                   const Spacer(),
                   TextButton(
                       onPressed: () {

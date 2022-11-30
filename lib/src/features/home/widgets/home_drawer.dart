@@ -1,12 +1,6 @@
-import 'package:bariaco/src/features/account/screens/account.dart';
 import 'package:bariaco/src/features/item/screens/item.dart';
-import 'package:bariaco/src/features/session/cubits/authentication_cubit.dart';
-import 'package:bariaco/src/features/session/screens/social_login_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-
 import 'home_drawer_account.dart';
-import 'home_drawer_login.dart';
 
 class HomeDrawer extends StatelessWidget {
   const HomeDrawer({super.key});
